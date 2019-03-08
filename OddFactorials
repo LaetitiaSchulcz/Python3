@@ -1,0 +1,14 @@
+#create a function called odd_factorial taking a variable as a parameter and returning the 
+#multiplication of all the odd numbers up the parameter. 
+#Eg with 9, it would return 1*3*5*7*9 and with 8, it would return 1*3*5*7...
+#hint u need to have if condition on your parameter within your function.
+
+def oddfactorial(var):
+    if var%2 == 0: 
+        var = var-1
+    for i in range(1,var,2):
+        var = var*i
+    return var
+    
+fact = int(input('Quelle valeur à tester? '))
+print('Le résultat est: ', oddfactorial(fact))
