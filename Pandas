@@ -34,6 +34,5 @@ mergeddf = pd.merge(df1,df2, on='Date', how='outer')
 mergeddf['Indic'] = mergeddf.apply(lambda series: '1' if series['Close-Close_x'] >= series['Close-Close_y'] else '-1', axis=1)
 print(mergeddf)
 
-# df['SPLITTER'] = df.apply(lambda series: 'BIG' if series['ccy1'] >= series['ccy2'] else 'SMALL', axis=1)
 #Compter le nb de jours de trading
 print('Nombre de jours ouvrés: ', mergeddf.Date.count())
