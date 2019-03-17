@@ -1,0 +1,39 @@
+import pandas as pd 
+import ntpath
+import numpy as np 
+
+df1 = pd.read_excel('/home/fschulcz/Téléchargements/data1.xlsx')
+df2 = pd.read_excel('/home/fschulcz/Téléchargements/data2.xlsx')
+dfolder = [df1, df2]
+
+for df in dfolder: 
+    #Renomme les colonnes dans chaque df de dfolder - 'inplace' applies the changes without reassignment
+    df.rename(columns={
+        'PX_OPEN_stock1':'Open',
+        'PX_LAST_stock1':'Close'
+    }, inplace=True)
+    
+    #Crée colonnes avec returns intraday, overnight, close to close, open to open - difficult is "overnight"
+    df['IntraDays'] = np.log(df.Close) - np.log(df.Open)
+    df['Overnight'] = np.log(df.Open) - np.log(df.Close.shift(-1))
+    df['Close-Close'] = df.Close.pct_change()*100
+    df['Open-Open'] = df.Open.pct_change()*100
+    
+    #Crée des colonnes avec rolling returns 20 days & rolling vol 
+    df['Returns 20'] = df['IntraDays'].rolling(window = 20).mean()
+    df['Vol 20'] = df['IntraDays'].rolling(window = 20).std
+    
+     #Calculate RS1 10D on the stocks on close 
+    
+    #Trouve le nom du fichier à partir de la source via ntpath (mais pb au niveau de la source)
+    #Affiche shape, colonnes, quick stats pour chaque fichier
+    print('\nFile Name: ', ntpath.basename(source1) , '\nShape: ', df.shape, '\nLabels: ', (" , ".join(list(df.columns))), '\nQuick Stats:\n\n', df.describe(),'\n\n') 
+    
+#Bonus question : on joint les deux dataframes avec un full outer join 
+mergeddf = pd.merge(df1,df2, on='Date', how='outer')
+mergeddf['Indic'] = mergeddf.apply(lambda series: '1' if series['Close-Close_x'] >= series['Close-Close_y'] else '-1', axis=1)
+print(mergeddf)
+
+# df['SPLITTER'] = df.apply(lambda series: 'BIG' if series['ccy1'] >= series['ccy2'] else 'SMALL', axis=1)
+#Compter le nb de jours de trading
+print('Nombre de jours ouvrés: ', mergeddf.Date.count())
