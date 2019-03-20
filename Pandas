@@ -6,6 +6,16 @@ df1 = pd.read_excel('/home/fschulcz/Téléchargements/data1.xlsx')
 df2 = pd.read_excel('/home/fschulcz/Téléchargements/data2.xlsx')
 dfolder = [df1, df2]
 
+#Calculate RS1 10D on the stocks on close
+def rsi(df, n = 10):
+    up, down = df['Close'].diff().copy(), df['Close'].diff().copy()
+    up[up<0] = 0
+    down[down>0] = 0
+    roll_up = up.rolling(n).mean()
+    roll_down = down.rolling(n).mean().abs()
+    RSI = roll_up/(roll_down+roll_up)*100
+    return RSI
+
 for df in dfolder: 
     #Renomme les colonnes dans chaque df de dfolder - 'inplace' applies the changes without reassignment
     df.rename(columns={
@@ -21,18 +31,16 @@ for df in dfolder:
     
     #Crée des colonnes avec rolling returns 20 days & rolling vol 
     df['Returns 20'] = df['IntraDays'].rolling(window = 20).mean()
-    df['Vol 20'] = df['IntraDays'].rolling(window = 20).std
-    
-     #Calculate RS1 10D on the stocks on close 
-    
+    df['Vol 20'] = df['IntraDays'].rolling(window = 20).std()
+    df['RSI10d'] = rsi(df)
+                            
     #Trouve le nom du fichier à partir de la source via ntpath (mais pb au niveau de la source)
     #Affiche shape, colonnes, quick stats pour chaque fichier
-    print('\nFile Name: ', ntpath.basename(source1) , '\nShape: ', df.shape, '\nLabels: ', (" , ".join(list(df.columns))), '\nQuick Stats:\n\n', df.describe(),'\n\n') 
+    print('\nFile Name: ', ntpath.basename('/home/fschulcz/Téléchargements/data1.xlsx') , '\nShape: ', df.shape, '\nLabels: ', "".join(list(df.columns)), '\nQuick Stats:\n\n', df.describe(),'\n') 
+    print('\nExtract:\n\n' , df.tail(10))
     
 #Bonus question : on joint les deux dataframes avec un full outer join 
-mergeddf = pd.merge(df1,df2, on='Date', how='outer')
+mergeddf = pd.merge(df1,df2,on='Date', how='outer')
 mergeddf['Indic'] = mergeddf.apply(lambda series: '1' if series['Close-Close_x'] >= series['Close-Close_y'] else '-1', axis=1)
-print(mergeddf)
-
-#Compter le nb de jours de trading
-print('Nombre de jours ouvrés: ', mergeddf.Date.count())
+print('\n\nExtract merged:\n\n' , mergeddf.tail(10))
+print('Nombre de jours ouvrés: ', mergeddf.Date.count()) #Compter le nb de jours de trading
