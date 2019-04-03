@@ -12,8 +12,8 @@ dt=df[['SPXmid','SPXret']].copy().ffill()
 #Create additionnal columns
 dt['Indic'] = np.where(dt.SPXmid >dt.SPXmid.rolling(20).mean(),'1','-1')
 dt['str'] = dt.SPXret*dt.Indic.astype(float).shift(-1)
-dt['CompSPX'] = (1+dt.SPXret).cumsum()
-dt['CompStr'] = (1+dt.str).cumsum()
+dt['CompSPX'] = (1+dt.SPXret).cumprod()
+dt['CompStr'] = (1+dt.str).cumprod()
 
 #Quick & dirty stats
 print('\nSummary - Daily returns (Strategy):\nMean: ', dt.str.mean(),'\nMin: ',dt.str.min(),'\nMax: ',dt.str.max(), \
