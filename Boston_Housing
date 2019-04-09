@@ -1,5 +1,5 @@
 #import boston housing from sklearn 
-import sklearn as skl
+from sklearn import datasets
 import seaborn as sb 
 import matplotlib.pyplot as plt
 import numpy as np 
@@ -14,19 +14,23 @@ def univar(data):
         plt.subplot(3,4,1)
         sb.distplot(data.median_price, kde = True).set_title('KDE - Median Price')
         plt.subplot(3,4,i)
-        sb.violinplot(data.drop(['CHAS'],axis=1).iloc[:,i-2],palette='Blues').set_title(list(data)[i-3].capitalize().replace('_',' '))
+        sb.violinplot(data.drop(['CHAS'],axis=1).iloc[:,i-2],palette='Blues').set_title(list(data)[i-1].capitalize().replace('_',' '))
     plt.tight_layout()
     plt.show()
 
-def bivar(data):
+def heatmap(data):
     plt.figure(figsize=(8,8))
     ax = plt.axes()
     sb.heatmap(data.corr(), ax = ax)
     ax.set_title('Heatmap - Correlations')
-    #sb.pairplot(data.drop([...])... La suite plus tard
+    
+def pairplot(data):
+    plt.close()
+    plt.figure(figsize=(25,25))
+    sb.pairplot(data, kind='reg', palette='husl')
 
-#EDA: shape + nature of vars + nb NA + sort dataset 
-boston_data = skl.datasets.load_boston() #print(boston_data.DESCR)
+#EDA: shape + nature of vars + nb NA  
+boston_data = datasets.load_boston() #print(boston_data.DESCR)
 df = pd.DataFrame(boston_data.data,columns=boston_data.feature_names)
 df['target'] = pd.Series(boston_data.target)
 df.rename(columns = {'CRIM':'rate_crime',
@@ -44,7 +48,7 @@ df.rename(columns = {'CRIM':'rate_crime',
                     'target':'median_price'},inplace=True)
 
 df.sort_values(by='median_price',ascending=True)
-df2 = pd.DataFrame(data = {'Types':df.dtypes,'Nb of NaN':df.isnull().sum()} )
+df2 = pd.DataFrame(data = {'Types':df.dtypes,'NaN':df.isnull().sum()} )
 desc = pd.merge(df2, df.describe().T,left_index=True, right_index=True)
 print('EDA - Quick stats\n\n', desc)
 
@@ -64,5 +68,14 @@ univar(df)
 plt.close()
 
 #Bivariate analysis: pairplot + heatmap on corr
-print('\nBIVARIATE ANALYSIS\n')
-bivar(df)
+print('\nBIVARIATE ANALYSIS')
+heatmap(df) #Heatmap
+plt.show()
+plt.close()
+c = df.corr().abs() #Extraction des coefs de correl les plus élevés 
+sc = c.unstack().sort_values(ascending = False) #sc comme sorted corr 
+sc = sc.drop(sc.index[0:14], axis = 0) #Drop first 13th results - since corr = 1 
+print('Top 10 highest correlation coefficients\n{}\n\nPairplot & Linear Regs'.format(sc.head(10)))
+dfpair = df.copy() 
+dfpair = dfpair.drop(['nb_room','underclass_pct','CHAS','residential','rate_crime','blacks_in_town_pct','student_teacher_ratio'],axis=1)
+pairplot(dfpair)
