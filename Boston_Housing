@@ -1,0 +1,68 @@
+#import boston housing from sklearn 
+import sklearn as skl
+import seaborn as sb 
+import matplotlib.pyplot as plt
+import numpy as np 
+import pandas as pd
+import warnings 
+warnings.simplefilter('ignore')
+
+#Functions
+def univar(data):
+    plt.figure(figsize=(20,10)) 
+    for i in range(2,13):
+        plt.subplot(3,4,1)
+        sb.distplot(data.median_price, kde = True).set_title('KDE - Median Price')
+        plt.subplot(3,4,i)
+        sb.violinplot(data.drop(['CHAS'],axis=1).iloc[:,i-2],palette='Blues').set_title(list(data)[i-3].capitalize().replace('_',' '))
+    plt.tight_layout()
+    plt.show()
+
+def bivar(data):
+    plt.figure(figsize=(8,8))
+    ax = plt.axes()
+    sb.heatmap(data.corr(), ax = ax)
+    ax.set_title('Heatmap - Correlations')
+    #sb.pairplot(data.drop([...])... La suite plus tard
+
+#EDA: shape + nature of vars + nb NA + sort dataset 
+boston_data = skl.datasets.load_boston() #print(boston_data.DESCR)
+df = pd.DataFrame(boston_data.data,columns=boston_data.feature_names)
+df['target'] = pd.Series(boston_data.target)
+df.rename(columns = {'CRIM':'rate_crime',
+                    'ZN':'residential',
+                    'INDUS':'businesszone',
+                    'NOX':'oxide_concentration',
+                    'RM':'nb_room',
+                    'AGE':'owner_age',
+                    'DIS':'dist_to_work',
+                    'RAD':'highway_access',
+                    'TAX':'property_tax',
+                    'PTRATIO':'student_teacher_ratio',
+                    'B':'blacks_in_town_pct',
+                    'LSTAT':'underclass_pct',
+                    'target':'median_price'},inplace=True)
+
+df.sort_values(by='median_price',ascending=True)
+df2 = pd.DataFrame(data = {'Types':df.dtypes,'Nb of NaN':df.isnull().sum()} )
+desc = pd.merge(df2, df.describe().T,left_index=True, right_index=True)
+print('EDA - Quick stats\n\n', desc)
+
+#EDA: Clean NA
+if df.isnull().sum().sum(axis=0) != 0: 
+    print(' \n',df.isnull().sum().sum(axis=0),' NaN values detected in this dataset')
+    rep = input('Show rows? (y/n) ')
+    if rep == 'y':
+        df[df.isnull().any(axis=1)]
+    rep = input('Proceed with ffill? (y/n) ')
+    if rep == 'y': 
+        df.ffill(axis = 1)
+
+#Univariate analysis: kde for dependant variable (median_price) + violins for the rest + subplots pour la grille        
+print('\nUNIVARIATE ANALYSIS\n')
+univar(df)
+plt.close()
+
+#Bivariate analysis: pairplot + heatmap on corr
+print('\nBIVARIATE ANALYSIS\n')
+bivar(df)
