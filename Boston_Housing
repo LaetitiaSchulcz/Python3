@@ -88,7 +88,7 @@ sc = sc.drop(sc.index[0:14], axis = 0) #Drop first 13th results - since corr = 1
 print('Top 10 highest correlation coefficients\n{}\n\nPairplot & Linear Regs'.format(sc.head(10)))
 dfpair = df.copy() #Prep pairplot
 dfpair = dfpair.drop(['nb_room','underclass_pct','CHAS','residential','rate_crime','blacks_in_town','student_teacher_ratio'],axis=1)
-#pairplot(dfpair)
+pairplot(dfpair)
 
 #Régression multivariée sur median_price
 print('\nREGRESSION ANALYSIS')
