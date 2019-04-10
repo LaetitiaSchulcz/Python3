@@ -1,4 +1,3 @@
-#import boston housing from sklearn 
 from sklearn import datasets
 import seaborn as sb 
 import matplotlib.pyplot as plt
