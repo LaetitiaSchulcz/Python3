@@ -31,7 +31,7 @@ def pairplot(data):
 #EDA: shape + nature of vars + nb NA  
 boston_data = datasets.load_boston() #print(boston_data.DESCR)
 df = pd.DataFrame(boston_data.data,columns=boston_data.feature_names)
-df['target'] = pd.Series(boston_data.target)
+df['median_price'] = pd.Series(boston_data.target)
 df.rename(columns = {'CRIM':'rate_crime',
                     'ZN':'residential',
                     'INDUS':'businesszone',
@@ -43,8 +43,7 @@ df.rename(columns = {'CRIM':'rate_crime',
                     'TAX':'property_tax',
                     'PTRATIO':'student_teacher_ratio',
                     'B':'blacks_in_town_pct',
-                    'LSTAT':'underclass_pct',
-                    'target':'median_price'},inplace=True)
+                    'LSTAT':'underclass_pct'},inplace=True)
 
 df.sort_values(by='median_price',ascending=True)
 df2 = pd.DataFrame(data = {'Types':df.dtypes,'NaN':df.isnull().sum()} )
