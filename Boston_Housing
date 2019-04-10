@@ -1,4 +1,5 @@
-from sklearn import datasets
+#import boston housing from sklearn 
+import sklearn 
 import seaborn as sb 
 import matplotlib.pyplot as plt
 import numpy as np 
@@ -10,23 +11,35 @@ warnings.simplefilter('ignore')
 def univar(data):
     plt.figure(figsize=(20,10)) 
     for i in range(2,13):
-        plt.subplot(3,4,1)
+        plt.subplot(3,4,1) #Median_price KDE 
         sb.distplot(data.median_price, kde = True).set_title('KDE - Median Price')
-        plt.subplot(3,4,i)
-        sb.violinplot(data.drop(['CHAS'],axis=1).iloc[:,i-2],palette='Blues').set_title(list(data.drop(['CHAS'],axis=1)[i].capitalize().replace('_',' '))
+        plt.subplot(3,4,i) #Iteration - Violins
+        sb.violinplot(data.drop(['CHAS'],axis=1).iloc[:,i-2],palette='Blues')\
+        .set_title(list(data.drop(['CHAS'],axis=1))[i-2].capitalize().replace('_',' '))
     plt.tight_layout()
     plt.show()
 
 def heatmap(data):
+    plt.close()
     plt.figure(figsize=(8,8))
     ax = plt.axes()
     sb.heatmap(data.corr(), ax = ax)
     ax.set_title('Heatmap - Correlations')
+    plt.show()
     
 def pairplot(data):
     plt.close()
     plt.figure(figsize=(25,25))
     sb.pairplot(data, kind='reg', palette='husl')
+    plt.show()
+    
+def plotreg(A,B):
+    plt.close()
+    plt.figure(figsize=(8,8))
+    plt.scatter(A,B) 
+    plt.xlabel('Actual Prices')
+    plt.ylabel('Predicted prices') 
+    plt.title('Predicted v Actual Prices')
 
 #EDA: shape + nature of vars + nb NA  
 boston_data = datasets.load_boston() #print(boston_data.DESCR)
@@ -42,11 +55,12 @@ df.rename(columns = {'CRIM':'rate_crime',
                     'RAD':'highway_access',
                     'TAX':'property_tax',
                     'PTRATIO':'student_teacher_ratio',
-                    'B':'blacks_in_town_pct',
+                    'B':'blacks_in_town',
                     'LSTAT':'underclass_pct'},inplace=True)
 
-df2 = pd.DataFrame(data = {'Types':df.dtypes,'NaN':df.isnull().sum()} )
-desc = pd.merge(df2, df.describe().T,left_index=True, right_index=True)
+df.sort_values(by='median_price',ascending=True)
+df_types_nan = pd.DataFrame(data = {'Types':df.dtypes,'NaN':df.isnull().sum()} )
+desc = pd.merge(df_types_nan, df.describe().T,left_index=True, right_index=True)
 print('EDA - Quick stats\n\n', desc)
 
 #EDA: Clean NA
@@ -54,25 +68,44 @@ if df.isnull().sum().sum(axis=0) != 0:
     print(' \n',df.isnull().sum().sum(axis=0),' NaN values detected in this dataset')
     rep = input('Show rows? (y/n) ')
     if rep == 'y':
-        df[df.isnull().all(axis=0)]
+        df[df.isnull().any(axis=1)]
     rep = input('Proceed with ffill? (y/n) ')
     if rep == 'y': 
         df.ffill(axis = 1)
 
-#Univariate analysis: kde for dependant variable (median_price) + violins for the rest + subplots pour la grille        
+#Univariate analysis: kde for dependent var (median_price) + violins for the rest + subplots pour la grille        
 print('\nUNIVARIATE ANALYSIS\n')
 univar(df)
-plt.close()
 
 #Bivariate analysis: pairplot + heatmap on corr
 print('\nBIVARIATE ANALYSIS')
-heatmap(df) #Heatmap
+
+#Heatmap + Extraction des coefs de correl les plus élevés + Pairplot sur les variables pertinentes 
+heatmap(df) 
+c = df.corr().abs() #Extraction des coefs de correl les plus élevés 
+sc = c.unstack().sort_values(ascending = False) 
+sc = sc.drop(sc.index[0:14], axis = 0) #Drop first 13th results - since corr = 1 
+print('Top 10 highest correlation coefficients\n{}\n\nPairplot & Linear Regs'.format(sc.head(10)))
+dfpair = df.copy() #Prep pairplot
+dfpair = dfpair.drop(['nb_room','underclass_pct','CHAS','residential','rate_crime','blacks_in_town','student_teacher_ratio'],axis=1)
+#pairplot(dfpair)
+
+#Régression multivariée sur median_price
+print('\nREGRESSION ANALYSIS')
+print('Top 5 highest correlation with median_price\n',c['median_price'].copy().sort_values(ascending=False).head(5))
+factors_reg = list((c[c['median_price']>=0.5]).index.values)
+pos_median_price = factors_reg.index('median_price') #Get the list of relevant factors
+del factors_reg[pos_median_price] #Delete median_price from the list 
+X = df[factors_reg].copy() #Create basis df for reg 
+Y = df['median_price'].copy() 
+
+#Regression multiple - training set + mse
+X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y, test_size = 0.33, random_state = 5)
+lm = LinearRegression()
+lm.fit(X_train, Y_train)
+Y_pred = lm.predict(X_test)
+plotreg(Y_test,Y_pred)
 plt.show()
 plt.close()
-c = df.corr().abs() #Extraction des 10 coefs de correl les plus élevés 
-sc = c.unstack().sort_values(ascending = False) #sc comme sorted corr 
-sc = sc.drop(sc.index[0:14], axis = 0) #Drop first 14th results - since corr = 1 
-print('Top 10 highest correlation coefficients\n{}\n\nPairplot & Linear Regs'.format(sc.head(10)))
-dfpair = df.copy() #Prepartion du pairplot avec les variables du top 10
-dfpair = dfpair.drop(['nb_room','underclass_pct','CHAS','residential','rate_crime','blacks_in_town_pct','student_teacher_ratio'],axis=1)
-pairplot(dfpair)
+print('\nTraining based on factors: {}'.format(', '.join(factors_reg)))
+print('MSE:',sklearn.metrics.mean_squared_error(Y_test, Y_pred))
