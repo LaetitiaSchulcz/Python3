@@ -57,7 +57,7 @@ if df.isnull().sum().sum(axis=0) != 0:
     print(' \n',df.isnull().sum().sum(axis=0),' NaN values detected in this dataset')
     rep = input('Show rows? (y/n) ')
     if rep == 'y':
-        df[df.isnull().any(axis=1)]
+        df[df.isnull().all(axis=0)]
     rep = input('Proceed with ffill? (y/n) ')
     if rep == 'y': 
         df.ffill(axis = 1)
@@ -72,10 +72,10 @@ print('\nBIVARIATE ANALYSIS')
 heatmap(df) #Heatmap
 plt.show()
 plt.close()
-c = df.corr().abs() #Extraction des coefs de correl les plus élevés 
+c = df.corr().abs() #Extraction des 10 coefs de correl les plus élevés 
 sc = c.unstack().sort_values(ascending = False) #sc comme sorted corr 
-sc = sc.drop(sc.index[0:14], axis = 0) #Drop first 13th results - since corr = 1 
+sc = sc.drop(sc.index[0:14], axis = 0) #Drop first 14th results - since corr = 1 
 print('Top 10 highest correlation coefficients\n{}\n\nPairplot & Linear Regs'.format(sc.head(10)))
-dfpair = df.copy() 
+dfpair = df.copy() #Prepartion du pairplot avec les variables du top 10
 dfpair = dfpair.drop(['nb_room','underclass_pct','CHAS','residential','rate_crime','blacks_in_town_pct','student_teacher_ratio'],axis=1)
 pairplot(dfpair)
