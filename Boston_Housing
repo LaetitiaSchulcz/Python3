@@ -45,7 +45,6 @@ df.rename(columns = {'CRIM':'rate_crime',
                     'B':'blacks_in_town_pct',
                     'LSTAT':'underclass_pct'},inplace=True)
 
-df.sort_values(by='median_price',ascending=True)
 df2 = pd.DataFrame(data = {'Types':df.dtypes,'NaN':df.isnull().sum()} )
 desc = pd.merge(df2, df.describe().T,left_index=True, right_index=True)
 print('EDA - Quick stats\n\n', desc)
