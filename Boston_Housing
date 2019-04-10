@@ -13,7 +13,7 @@ def univar(data):
         plt.subplot(3,4,1)
         sb.distplot(data.median_price, kde = True).set_title('KDE - Median Price')
         plt.subplot(3,4,i)
-        sb.violinplot(data.drop(['CHAS'],axis=1).iloc[:,i-2],palette='Blues').set_title(list(data)[i-1].capitalize().replace('_',' '))
+        sb.violinplot(data.drop(['CHAS'],axis=1).iloc[:,i-2],palette='Blues').set_title(list(data.drop(['CHAS'],axis=1)[i].capitalize().replace('_',' '))
     plt.tight_layout()
     plt.show()
 
