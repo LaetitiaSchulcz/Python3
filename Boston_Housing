@@ -68,7 +68,7 @@ if df.isnull().sum().sum(axis=0) != 0:
     print(' \n',df.isnull().sum().sum(axis=0),' NaN values detected in this dataset')
     rep = input('Show rows? (y/n) ')
     if rep == 'y':
-        df[df.isnull().any(axis=1)]
+        df[df.isnull().all(axis=0)]
     rep = input('Proceed with ffill? (y/n) ')
     if rep == 'y': 
         df.ffill(axis = 1)
