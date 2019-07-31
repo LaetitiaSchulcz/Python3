@@ -1,2 +1,2 @@
 # Python3
-For school.
+Cheatsheets, school stuff and more. 
